@@ -1,4 +1,4 @@
-FROM python:3.6-alpine
+FROM python:3.6-slim
 
 WORKDIR /deps
 
@@ -6,11 +6,15 @@ WORKDIR /deps
 COPY requirements.txt /deps
 RUN pip3 install -r requirements.txt
 
+# ONLY FOR DEVELOPMENT
+COPY requirements-dev.txt /deps
+RUN pip3 install -r requirements-dev.txt
+
 # Copy whole current directory
-WORKDIR /app
-COPY ./ /app
+WORKDIR /app/backend
+COPY ./ /app/backend
 
 # Expose port of application
 EXPOSE 8191
 
-CMD sleep 5d
+CMD python3 /app/backend/serve.py
