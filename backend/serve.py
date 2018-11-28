@@ -2,6 +2,7 @@
 from flask import Flask
 
 from views import jobs
+from lib import Config
 
 
 def register_blueprints(app):
@@ -10,6 +11,8 @@ def register_blueprints(app):
 
 def make_app():
     app = Flask("Asyncpage")
+    app.cfg = Config()
+    app.cfg.load_from_yaml("config.yml")
 
     register_blueprints(app)
 
@@ -18,8 +21,8 @@ def make_app():
 
 def main():
     app = make_app()
-    app.run(host="0.0.0.0",
-            port="8191",
+    app.run(host=app.cfg.get("app.server.host"),
+            port=app.cfg.get("app.server.port"),
             debug=True)
 
 

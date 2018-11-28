@@ -1,6 +1,11 @@
 from rq import Queue
 from redis import Redis
 
-# TODO: Move consts to config
-redis_conn = Redis(host="redis")
+from lib import Config
+
+cfg = Config()
+cfg.load_from_yaml("config.yml")
+
+redis_conn = Redis(host=cfg.get("db.host"),
+                   port=cfg.get("db.port"))
 q = Queue(connection=redis_conn)
