@@ -1,4 +1,10 @@
-from flask import (Blueprint, request, jsonify, send_file)
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    request,
+    send_file,
+)
 
 from jobs_queue import q
 from jobs_queue import tasks
@@ -24,9 +30,10 @@ def register_job():
     except KeyError as e:
         return create_error("No {} in request body".format(e))
 
+    result_ttl = current_app.cfg.get("queue.result_ttl")
+
     # TODO: Handle exceptions
-    # TODO: Move result_ttl to config
-    job = q.enqueue(tasks.get_page, args=(url,), result_ttl=-1)
+    job = q.enqueue(tasks.get_page, args=(url,), result_ttl=result_ttl)
 
     return create_response({"next_url": "http://localhost:8191/api/jobs/" + job.id + "/status"})
 

@@ -1,0 +1,12 @@
+app:
+  server:
+    host: 0.0.0.0
+    port: 8191
+
+queue:
+  # TTL for results, in seconds. -1 means that results will never expire
+  result_ttl: -1
+
+db:
+  host: redis
+  port: 6379
