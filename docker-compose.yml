@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  redis:
+    hostname: redis:5.0-alpine
+    image: redis:alpine
+    ports:
+      - 6379:6379
+
+  worker:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    hostname: worker
+    command: rq worker --url redis://redis:6379
+
+  asyncpage:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    hostname: asyncpage
+    ports:
+      - 8191:8191
+    volumes:
+      - './:/app/:rw'
+    links:
+      - redis
+      - worker
