@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 from flask import Flask
 
-from views import api
+from views import jobs
 
 
 def register_blueprints(app):
-    app.register_blueprint(api.blueprint, url_prefix="/api/static")
+    app.register_blueprint(jobs.blueprint, url_prefix="/api/jobs")
 
 
 def make_app():
