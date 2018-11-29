@@ -3,9 +3,13 @@ import urllib.request
 from bs4 import BeautifulSoup
 
 
-def get_page(url):
+def get_url_content(url):
     with urllib.request.urlopen(url) as response:
-        html = response.read()
+        return response.read()
+
+
+def get_page(url):
+    html = get_url_content(url)
 
     soup = BeautifulSoup(html, "html.parser")
 
