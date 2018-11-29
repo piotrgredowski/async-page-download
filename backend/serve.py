@@ -3,6 +3,7 @@ from flask import Flask
 
 from views import jobs
 from lib import Config
+from jobs_queue import queue
 
 
 def register_blueprints(app):
@@ -13,6 +14,9 @@ def make_app():
     app = Flask("Asyncpage")
     app.cfg = Config()
     app.cfg.load_from_yaml("config.yml")
+
+    # Assign queue to app
+    app.queue = queue
 
     register_blueprints(app)
 
