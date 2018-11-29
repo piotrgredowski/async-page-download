@@ -8,4 +8,4 @@ cfg.load_from_yaml("config.yml")
 
 redis_conn = Redis(host=cfg.get("db.host"),
                    port=cfg.get("db.port"))
-q = Queue(connection=redis_conn)
+queue = Queue(connection=redis_conn)
