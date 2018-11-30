@@ -4,9 +4,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import yaml
 
-from lib.config import Config
-
-BASE_PATH = os.path.abspath(os.path.dirname(__file__))
+from utils import Config
 
 
 class TestConfig(unittest.TestCase):
@@ -16,11 +14,12 @@ class TestConfig(unittest.TestCase):
         self.config = Config()
 
     def test_load_from_yaml(self):
+        "Test loading config file from yaml file"
         mocked_config = {
             "key": "value"
         }
 
-        with patch('__main__.open', mock_open(read_data="")) as m:
+        with patch('__main__.open', mock_open()):
             yaml.load = MagicMock(return_value=mocked_config)
 
         self.config.load_from_yaml("config.yml")
@@ -29,6 +28,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.config._cfg, mocked_config)
 
     def test_get(self):
+        "Test getting keys from config"
         mocked_config = {
             "app": {
                 "server": {
