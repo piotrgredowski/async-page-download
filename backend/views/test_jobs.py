@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 import json
 import uuid
 
@@ -22,7 +22,7 @@ class TestViews(unittest.TestCase):
         self.queue = Queue(name="fake_queue", is_async=False,
                            connection=FakeStrictRedis())
 
-        self.app = make_app()
+        self.app = make_app("config.yml")
         self.app.queue = Queue(name="fake_queue", is_async=False,
                                connection=FakeStrictRedis())
         self.app.config['TESTING'] = True
@@ -31,6 +31,9 @@ class TestViews(unittest.TestCase):
 
     def test_register_job(self):
         "Test successful job register"
+        # Needed for getting result_ttl inside register_job function
+        self.app.cfg.get = MagicMock(return_value=-1)
+
         with patch("jobs_queue.tasks.get_url_content",
                    return_value=MOCKED_GET_PAGE):
             ret = self.client.put("/api/jobs",

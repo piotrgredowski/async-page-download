@@ -3,7 +3,6 @@ from flask import (
     current_app,
     jsonify,
     request,
-    send_file,
 )
 
 from jobs_queue import tasks

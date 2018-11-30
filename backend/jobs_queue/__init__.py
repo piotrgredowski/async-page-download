@@ -1,7 +1,7 @@
 from rq import Queue
 from redis import Redis
 
-from lib import Config
+from utils import Config
 
 cfg = Config()
 cfg.load_from_yaml("config.yml")
