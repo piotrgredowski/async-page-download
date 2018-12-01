@@ -7,14 +7,8 @@ services:
     ports:
       - 6379:6379
 
-  worker:
-    build:
-      context: backend
-      dockerfile: Dockerfile
-    hostname: worker
-    command: rq worker --url redis://redis:6379
-
   asyncpage:
+    image: asyncpage_image
     build:
       context: backend
       dockerfile: Dockerfile
@@ -25,4 +19,17 @@ services:
       - './:/app/:rw'
     links:
       - redis
-      - worker
+    depends_on:
+      - redis
+
+  worker:
+    image: asyncpage_image
+    hostname: worker
+    command: rq worker --url redis://redis:6379
+
+    depends_on:
+      - redis
+      - asyncpage
+    links:
+      - redis
+      - asyncpage

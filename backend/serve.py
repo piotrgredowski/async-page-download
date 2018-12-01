@@ -11,7 +11,7 @@ def register_blueprints(app):
 
 
 def make_app(cfg_path):
-    app = Flask("Asyncpage")
+    app = Flask("AsyncPage")
     app.cfg = Config()
     app.cfg.load_from_yaml(cfg_path)
 
@@ -27,7 +27,7 @@ def main():
     app = make_app("config.yml")
     app.run(host=app.cfg.get("app.server.host"),
             port=app.cfg.get("app.server.port"),
-            debug=True)
+            debug=app.cfg.get("app.server.debug"))
 
 
 if __name__ == "__main__":
