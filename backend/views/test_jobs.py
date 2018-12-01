@@ -7,13 +7,15 @@ from fakeredis import FakeStrictRedis
 from rq import Queue
 
 from serve import make_app
+import page_handling
+from page_handling import Page
 
 
 MOCKED_GET_PAGE = "Example page."
 
 
-def func_for_job(func, param):
-    return func(param)
+def mock_get_page(url, text="", imgs={}):
+    return Page(url=url, text=text, imgs=imgs)
 
 
 class TestViews(unittest.TestCase):
@@ -34,7 +36,7 @@ class TestViews(unittest.TestCase):
         # Needed for getting result_ttl inside register_job function
         self.app.cfg.get = MagicMock(return_value=-1)
 
-        with patch("jobs_queue.tasks.get_url_content",
+        with patch("page_handling.PageDownloader._get_url_content",
                    return_value=MOCKED_GET_PAGE):
             ret = self.client.put("/api/jobs",
                                   data=json.dumps({"url": "http://faked-site.dev"}),
@@ -49,7 +51,7 @@ class TestViews(unittest.TestCase):
 
     def test_register_job_failing(self):
         "Test failing job register"
-        with patch("jobs_queue.tasks.get_url_content",
+        with patch("page_handling.PageDownloader._get_url_content",
                    return_value=MOCKED_GET_PAGE):
             ret = self.client.put("/api/jobs",
                                   data=json.dumps({"wrong_key": "value"}),
@@ -61,7 +63,8 @@ class TestViews(unittest.TestCase):
         "Test checking status of job"
 
         with self.app.app_context():
-            job = self.app.queue.enqueue(func_for_job, args=(int, 1,))
+            url = ""
+            job = self.app.queue.enqueue(mock_get_page, args=(url,))
 
             expected_status = "finished"
             assert expected_status == job.get_status()
@@ -88,10 +91,11 @@ class TestViews(unittest.TestCase):
 
     def test_get_result_of_job(self):
         "Test getting result of job"
-        expected_job_result = func_for_job(int, 1)  # 1
+        exp_url = "http://fake.dev"
+        exp_text = "Text."
 
         with self.app.app_context():
-            job = self.app.queue.enqueue(func_for_job, args=(int, 1,))
+            job = self.app.queue.enqueue(mock_get_page, args=(exp_url, exp_text))
 
             ret = self.client.get("/api/jobs/{}".format(job.id))
 
@@ -99,7 +103,10 @@ class TestViews(unittest.TestCase):
 
         self.assertEqual(ret.status_code, 200)
         self.assertIn("result", ret_json)
-        self.assertEqual(ret_json["result"], expected_job_result)
+
+        res = ret_json["result"]
+        self.assertEqual(res["src_url"], exp_url)
+        self.assertEqual(res["text"], exp_text)
 
     def test_get_result_of_non_existing_job(self):
         "Test getting result of non existing job"
@@ -109,8 +116,6 @@ class TestViews(unittest.TestCase):
             assert non_existing_job_id not in self.app.queue.get_job_ids()
 
             ret = self.client.get("/api/jobs/{}".format(non_existing_job_id))
-
-        ret_json = ret.get_json()
 
         ret_json = ret.get_json()
         self.assertEqual(ret.status_code, 404)

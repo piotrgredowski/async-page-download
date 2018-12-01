@@ -5,7 +5,7 @@ from flask import (
     request,
 )
 
-from jobs_queue import tasks
+from page_handling import PageDownloader
 
 
 def create_response(msg, ret_code=200):
@@ -29,8 +29,11 @@ def register_job():
         return create_error("No {} in request body".format(e))
     result_ttl = current_app.cfg.get("queue.result_ttl")
 
+    pd = PageDownloader()
     # TODO: Handle exceptions
-    job = current_app.queue.enqueue(tasks.get_page, args=(url,), result_ttl=result_ttl)
+    job = current_app.queue.enqueue(pd.get_page,
+                                    args=(url,),
+                                    result_ttl=result_ttl)
 
     return create_response({
         "job_id": job.id,
@@ -45,6 +48,7 @@ def check_status_of_job(job_id):
         return create_error("There is no job with given ID", 404)
 
     return create_response({"status": job.get_status(),
+                            "meta": job.meta,
                             "next_url": "http://localhost:8191/api/jobs/" + job.id})
 
 
@@ -54,5 +58,11 @@ def get_result_of_job(job_id):
 
     if not job:
         return create_error("There is no job with given ID", 404)
+    if job.get_status() != "finished":
+        return create_error("Job is not finished, try again later", 409)
 
-    return create_response({"result": job.result})
+    downloaded_page = job.result
+
+    # TODO: For now return only text - bytes cannot be send by json
+    return create_response({"result": {"text": downloaded_page.text,
+                                       "src_url": downloaded_page.url}})
