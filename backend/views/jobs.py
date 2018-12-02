@@ -22,10 +22,10 @@ blueprint = Blueprint("jobs", __name__)
 
 @blueprint.route("", methods=["PUT"])
 def register_job():
-    req = request.get_json()
+    req_json = request.get_json()
 
     try:
-        url = req["url"]
+        url = req_json["url"]
     except KeyError as e:
         return create_error("No {} in request body".format(e))
     result_ttl = current_app.cfg.get("queue.result_ttl")
@@ -35,9 +35,14 @@ def register_job():
                                     args=(url,),
                                     result_ttl=result_ttl)
 
-    return create_response({
+    response = {
         "job_id": job.id,
-        "next_url": "http://localhost:8191/api/jobs/" + job.id + "/status"})
+    }
+
+    if request.args.get("debug"):
+        response["next_url"] = "http://localhost:8191/api/jobs/" + job.id + "/status"
+
+    return create_response(response)
 
 
 @blueprint.route("/<uuid:job_id>/status", methods=["GET"])
@@ -47,9 +52,15 @@ def check_status_of_job(job_id):
     if not job:
         return create_error("There is no job with given ID", 404)
 
-    return create_response({"status": job.get_status(),
-                            "meta": job.meta,
-                            "next_url": "http://localhost:8191/api/jobs/" + job.id})
+    response = {
+        "status": job.get_status(),
+        "meta": job.meta,
+    }
+
+    if request.args.get("debug"):
+        response["next_url"] = "http://localhost:8191/api/jobs/" + job.id
+
+    return create_response(response)
 
 
 @blueprint.route("/<uuid:job_id>", methods=["GET"])
@@ -58,7 +69,11 @@ def get_result_of_job(job_id):
 
     if not job:
         return create_error("There is no job with given ID", 404)
-    if job.get_status() != "finished":
+
+    job_status = job.get_status()
+    if job_status == "failed":
+        return create_error("Job failed.", 409)
+    elif job_status != "finished":
         return create_error("Job is not finished, try again later", 409)
 
     downloaded_page = job.result
@@ -72,6 +87,5 @@ def get_result_of_job(job_id):
     finally:
         downloaded_page.remove_created_files()
 
-        delete = request.args.get("delete_after_download")
-        if delete:
+        if request.args.get("delete_after_download"):
             job.delete()
