@@ -1,10 +1,10 @@
 import unittest
 
-from . import PageDownloader
+from . import Downloader
 
 
-class TestPageDownloader(unittest.TestCase):
-    "Tests for PageDownloader"
+class TestDownloader(unittest.TestCase):
+    "Tests for Downloader"
 
     def setUp(self):
         pass

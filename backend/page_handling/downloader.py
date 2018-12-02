@@ -7,28 +7,7 @@ from rq import get_current_job
 from utils import log
 
 
-class Page:
-    "Represents downloaded page with its url, text and images"
-
-    def __init__(self, url, text, imgs):
-        self._url = url
-        self._text = text
-        self._imgs = imgs
-
-    @property
-    def url(self):
-        return self._url
-
-    @property
-    def text(self):
-        return self._text
-
-    @property
-    def imgs(self):
-        return self._imgs
-
-
-class PageDownloader:
+class Downloader:
     "Handles downloading page content and images."
 
     def __init__(self):
@@ -112,6 +91,15 @@ class PageDownloader:
         return text
 
     def get_page(self, url):
+        """
+        Returns instance of Page with downloaded text and images.
+
+        Args:
+            url (str)
+
+        Returns Page
+        """
+
         self._extract_url(url)
 
         html = self._get_url_content(url)
@@ -119,5 +107,6 @@ class PageDownloader:
 
         imgs = self._get_imgs_with_names(soup)
         text = self._get_text(soup)
+        from page_handling import Page
 
         return Page(url, text, imgs)
