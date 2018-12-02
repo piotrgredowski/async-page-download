@@ -3,9 +3,10 @@ from flask import (
     current_app,
     jsonify,
     request,
+    send_file
 )
 
-from page_handling import PageDownloader
+from page_handling import Downloader
 
 
 def create_response(msg, ret_code=200):
@@ -29,9 +30,8 @@ def register_job():
         return create_error("No {} in request body".format(e))
     result_ttl = current_app.cfg.get("queue.result_ttl")
 
-    pd = PageDownloader()
-    # TODO: Handle exceptions
-    job = current_app.queue.enqueue(pd.get_page,
+    downloader = Downloader()
+    job = current_app.queue.enqueue(downloader.get_page,
                                     args=(url,),
                                     result_ttl=result_ttl)
 
@@ -63,6 +63,15 @@ def get_result_of_job(job_id):
 
     downloaded_page = job.result
 
-    # TODO: For now return only text - bytes cannot be send by json
-    return create_response({"result": {"text": downloaded_page.text,
-                                       "src_url": downloaded_page.url}})
+    filename = downloaded_page.save_to_zip(filename=job.id)
+
+    try:
+        return send_file(filename_or_fp=filename,
+                         as_attachment=True,
+                         attachment_filename=job.id + ".zip")
+    finally:
+        downloaded_page.remove_created_files()
+
+        delete = request.args.get("delete_after_download")
+        if delete:
+            job.delete()

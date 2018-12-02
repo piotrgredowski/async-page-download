@@ -1,1 +1,2 @@
-from .page_downloader import PageDownloader, Page
+from .downloader import Downloader
+from .page import Page

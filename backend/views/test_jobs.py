@@ -8,14 +8,13 @@ from rq import Queue
 
 from serve import make_app
 import page_handling
-from page_handling import Page
 
 
 MOCKED_GET_PAGE = "Example page."
 
 
 def mock_get_page(url, text="", imgs={}):
-    return Page(url=url, text=text, imgs=imgs)
+    return page_handling.Page(url=url, text=text, imgs=imgs)
 
 
 class TestViews(unittest.TestCase):
@@ -36,7 +35,7 @@ class TestViews(unittest.TestCase):
         # Needed for getting result_ttl inside register_job function
         self.app.cfg.get = MagicMock(return_value=-1)
 
-        with patch("page_handling.PageDownloader._get_url_content",
+        with patch("page_handling.Downloader._get_url_content",
                    return_value=MOCKED_GET_PAGE):
             ret = self.client.put("/api/jobs",
                                   data=json.dumps({"url": "http://faked-site.dev"}),
@@ -51,7 +50,7 @@ class TestViews(unittest.TestCase):
 
     def test_register_job_failing(self):
         "Test failing job register"
-        with patch("page_handling.PageDownloader._get_url_content",
+        with patch("page_handling.Downloader._get_url_content",
                    return_value=MOCKED_GET_PAGE):
             ret = self.client.put("/api/jobs",
                                   data=json.dumps({"wrong_key": "value"}),
@@ -99,14 +98,10 @@ class TestViews(unittest.TestCase):
 
             ret = self.client.get("/api/jobs/{}".format(job.id))
 
-        ret_json = ret.get_json()
+        ret_data = ret.data
 
         self.assertEqual(ret.status_code, 200)
-        self.assertIn("result", ret_json)
-
-        res = ret_json["result"]
-        self.assertEqual(res["src_url"], exp_url)
-        self.assertEqual(res["text"], exp_text)
+        self.assertIsInstance(ret_data, bytes)
 
     def test_get_result_of_non_existing_job(self):
         "Test getting result of non existing job"
