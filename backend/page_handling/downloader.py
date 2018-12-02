@@ -1,5 +1,6 @@
 import urllib.request
 from urllib.parse import urlparse
+from urllib.error import HTTPError
 
 from bs4 import BeautifulSoup
 from rq import get_current_job
@@ -44,41 +45,44 @@ class Downloader:
 
         return path.split("/")[-1]
 
-    # FIXME: It is breaking SRP. Think about how to do it better.
-    def _update_meta_of_job(self, cur):
+    # TODO: It is breaking SRP. Think about how to do it better.
+    def _update_meta_of_job(self, no_of_done, no_of_failed):
         cur_job = get_current_job()
         if not cur_job:
             return
-        cur_job.meta.update({"imgs": {"done": cur + 1, "total": self.no_of_imgs}})
+        cur_job.meta.update({"imgs": {"done": no_of_done,
+                                      "failed": no_of_failed,
+                                      "total": self.no_of_imgs}})
         cur_job.save_meta()
 
     def _get_imgs_with_names(self, soup):
         urls = self._get_urls_of_imgs(soup)
         self.no_of_imgs = len(urls)
 
+        no_of_failed = 0
+        no_of_successed = 0
         imgs = []
-        for idx, url in enumerate(urls):
+
+        for url in urls:
             url = self._get_correct_url(url)
             try:
                 img = self._get_url_content(url)
             except TimeoutError:
                 log.error("Timeout exceeded on %s", url)
-                continue
+                no_of_failed += 1
+            except HTTPError:
+                log.error("Error while opening %s", url)
+                no_of_failed += 1
             else:
-                self._update_meta_of_job(idx)
-
                 imgs.append({"img": img, "name": self._get_img_name_from_url(url)})
-                log.info("Image %s/%s downloaded from %s", idx, self.no_of_imgs, url)
+                log.info("Image downloaded from %s", url)
+                no_of_successed += 1
+            finally:
+                self._update_meta_of_job(no_of_successed, no_of_failed)
 
         return imgs
 
-    def _get_text(self, soup):
-        # Remove CSS & JS
-        for script in soup(["script", "style"]):
-            script.decompose()
-
-        text = soup.get_text()
-
+    def _convert_text(self, text):
         # Break into lines and remove trailing whitespace
         lines = (line.strip() for line in text.splitlines())
         # Break multi-headlines into a line each
@@ -87,7 +91,15 @@ class Downloader:
                   for phrase in line.split("  "))
         # Remove blank lines
         text = '\n'.join(chunk for chunk in chunks if chunk)
+        return text
 
+    def _get_text(self, soup):
+        # Remove CSS & JS
+        for script in soup(["script", "style"]):
+            script.decompose()
+
+        text = soup.get_text()
+        text = self._convert_text(text)
         return text
 
     def get_page(self, url):

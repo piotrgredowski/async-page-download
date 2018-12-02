@@ -1,5 +1,8 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import (
+    MagicMock,
+    patch,
+)
 import json
 import uuid
 
@@ -13,7 +16,9 @@ import page_handling
 MOCKED_GET_PAGE = "Example page."
 
 
-def mock_get_page(url, text="", imgs={}):
+def mock_get_page(url, text="", imgs=None):
+    if imgs is None:
+        imgs = {}
     return page_handling.Page(url=url, text=text, imgs=imgs)
 
 

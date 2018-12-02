@@ -1,4 +1,7 @@
-from rq import Queue
+from rq import (
+    Queue,
+    get_current_job,
+)
 from redis import Redis
 
 from utils import Config
