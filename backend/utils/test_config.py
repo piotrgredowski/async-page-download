@@ -1,6 +1,9 @@
-import os
 import unittest
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import (
+    MagicMock,
+    mock_open,
+    patch,
+)
 
 import yaml
 
@@ -56,5 +59,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(result_nested_key,
                          mocked_config["app"]["server"]["host"])
 
-        with self.assertRaises(KeyError) as e:
+        with self.assertRaises(KeyError):
             self.config.get("wrong_key")

@@ -3,7 +3,7 @@ from flask import (
     current_app,
     jsonify,
     request,
-    send_file
+    send_file,
 )
 
 from page_handling import Downloader
@@ -40,7 +40,7 @@ def register_job():
     }
 
     if request.args.get("debug"):
-        response["next_url"] = "http://localhost:8191/api/jobs/" + job.id + "/status"
+        response["next_url"] = "{}api/jobs/{}/status?debug=1".format(request.host_url, job.id)
 
     return create_response(response)
 
@@ -58,7 +58,7 @@ def check_status_of_job(job_id):
     }
 
     if request.args.get("debug"):
-        response["next_url"] = "http://localhost:8191/api/jobs/" + job.id
+        response["next_url"] = "{}api/jobs/{}".format(request.host_url, job.id)
 
     return create_response(response)
 
@@ -73,7 +73,7 @@ def get_result_of_job(job_id):
     job_status = job.get_status()
     if job_status == "failed":
         return create_error("Job failed.", 409)
-    elif job_status != "finished":
+    if job_status != "finished":
         return create_error("Job is not finished, try again later", 409)
 
     downloaded_page = job.result
