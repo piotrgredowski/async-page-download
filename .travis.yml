@@ -1,0 +1,9 @@
+language: python
+python:
+  - '3.6'
+install:
+  - pip install codecov
+script:
+  - docker-compose run --rm asyncpage /app/run_tests.sh
+after_success:
+  - codecov
