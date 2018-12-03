@@ -1,4 +1,5 @@
 autopep8==1.4.3
+codecov==2.0.15
 coverage==4.5.2
 fakeredis==0.16.0
 ipython==7.1.1
