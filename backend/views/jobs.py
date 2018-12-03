@@ -14,7 +14,7 @@ def create_response(msg, ret_code=200):
 
 
 def create_error(err_msg, err_code=400):
-    return jsonify(err_msg), err_code
+    return jsonify({"error": err_msg}), err_code
 
 
 blueprint = Blueprint("jobs", __name__)
@@ -72,7 +72,7 @@ def get_result_of_job(job_id):
 
     job_status = job.get_status()
     if job_status == "failed":
-        return create_error("Job failed.", 409)
+        return create_error("Job failed", 409)
     if job_status != "finished":
         return create_error("Job is not finished, try again later", 409)
 

@@ -61,7 +61,11 @@ class TestViews(unittest.TestCase):
                                   data=json.dumps({"wrong_key": "value"}),
                                   content_type='application/json')
 
+        ret_json = ret.get_json()
+
         self.assertEqual(ret.status_code, 400)
+        self.assertEqual(ret_json["error"], "No 'url' in request body")
+
 
     def test_check_status_of_job(self):
         "Test checking status of job"
@@ -91,7 +95,7 @@ class TestViews(unittest.TestCase):
 
         ret_json = ret.get_json()
         self.assertEqual(ret.status_code, 404)
-        self.assertEqual(ret_json, "There is no job with given ID")
+        self.assertEqual(ret_json["error"], "There is no job with given ID")
 
     def test_get_result_of_job(self):
         "Test getting result of job"
@@ -119,4 +123,4 @@ class TestViews(unittest.TestCase):
 
         ret_json = ret.get_json()
         self.assertEqual(ret.status_code, 404)
-        self.assertEqual(ret_json, "There is no job with given ID")
+        self.assertEqual(ret_json["error"], "There is no job with given ID")
