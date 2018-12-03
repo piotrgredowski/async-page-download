@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.com/piotrgredowski/async-page-download.svg?branch=master)](https://travis-ci.com/piotrgredowski/async-page-download)
+[![codecov](https://codecov.io/gh/piotrgredowski/async-page-download/branch/develop/graph/badge.svg)](https://codecov.io/gh/piotrgredowski/async-page-download)
+
 # ASYNC PAGE DOWNLOAD
 
 ## About
