@@ -23,7 +23,6 @@ def mock_get_page(url, text="", imgs=None):
 
 
 class TestViews(unittest.TestCase):
-
     def setUp(self):
         self.queue = Queue(name="fake_queue", is_async=False,
                            connection=FakeStrictRedis())
@@ -65,7 +64,6 @@ class TestViews(unittest.TestCase):
 
         self.assertEqual(ret.status_code, 400)
         self.assertEqual(ret_json["error"], "No 'url' in request body")
-
 
     def test_check_status_of_job(self):
         "Test checking status of job"

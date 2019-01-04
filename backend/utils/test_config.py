@@ -23,11 +23,11 @@ class TestConfig(unittest.TestCase):
         }
 
         with patch('__main__.open', mock_open()):
-            yaml.load = MagicMock(return_value=mocked_config)
+            yaml.safe_load = MagicMock(return_value=mocked_config)
 
         self.config.load_from_yaml("config.yml")
 
-        yaml.load.assert_called_once()
+        yaml.safe_load.assert_called_once()
         self.assertEqual(self.config._cfg, mocked_config)
 
     def test_get(self):

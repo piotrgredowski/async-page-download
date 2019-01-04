@@ -8,7 +8,7 @@ class Config:
     def load_from_yaml(self, config_path):
         "Load configuration options from YAML file"
         with open(config_path, "r") as f:
-            loaded = yaml.load(f)
+            loaded = yaml.safe_load(f)
             self._cfg.update(loaded)
 
     def get(self, key):
